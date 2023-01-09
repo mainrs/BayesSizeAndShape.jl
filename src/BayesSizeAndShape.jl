@@ -1,0 +1,3 @@
+module BayesSizeAndShape
+
+end # module

@@ -1,0 +1,15 @@
+name = "BayesSizeAndShape"
+uuid = "cb1733c5-7124-4973-b058-890cf74b35cb"
+authors = ["gianluca.mastrantonio <mastrantonio.gluca@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
+
+[compat]
+julia = "^1"
