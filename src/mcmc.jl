@@ -32,10 +32,13 @@ function mcmc(;
     valp = Valuep2()
     if p ==2
         valp = Valuep2()
-    end
-    if p == 3
+    elseif p == 3
         valp = Valuep3()
+    else
+        error("p must be <= 3")
     end
+    
+   
 
     designmatrix_v2 = modelmatrix(fm, covariates) #n, d
 
@@ -49,7 +52,7 @@ function mcmc(;
     designmatrix = compute_dessignmatrix(modelmatrix(fm, covariates), k) # dimensions  k, k * d, n
     
     d::Int64 = size(designmatrix_v2, 2)
-    
+    #println(size(designmatrix), " ", size(modelmatrix(fm, covariates)))
     @assert size(dataset, 3) == size(covariates,1) # n
     @assert size(dataset, 3) == size(designmatrix_v2,1) # n
     @assert size(designmatrix, 1) == size(dataset, 1) # k
@@ -152,7 +155,7 @@ function mcmc(;
 
 
             sampler_beta(xdata, designmatrix, betaprior, betaMCMC, sigmaMCMC, valp, betastandMCMC)
-            betaMCMC[:, :] = betastandMCMC[:,:]
+            #betaMCMC[:, :] = betastandMCMC[:,:]
             sampler_rmat(xdata, designmatrix, betaMCMC, sigmaMCMC, angleMCMC, dataset, valp, reflection, rmatMCMC, samp_rmat)
             sampler_sigma(xdata, designmatrix, sigmaprior, betaMCMC, sigmaMCMC, sigmatype)
             
