@@ -2,7 +2,7 @@ module BayesSizeAndShape
 
 
 #using Pkg
-#Pkg.activate("/Users/gianlucamastrantonio/Dropbox (Politecnico di Torino Staff)/lavori/ShapeSize/BayesSizeAndShape")
+#Pkg.activate("/Users/gianlucamastrantonio/Dropbox (Politecnico di Torino Staff)/lavori/gitrepo/BayesSizeAndShape")
 
 ##### Packages
 # using MKL
