@@ -33,6 +33,52 @@ function compute_xdata(xdata::Array{Float64,3}, ydata::Array{Float64,3}, rmat::A
 end
 
 
+function compute_ss_from_pre_p3_keep_reflection(xdata::Array{Float64,3}, ydata::Array{Float64,3}, ret::Array{Float64,3})
+
+    for i = axes(xdata, 3)
+
+        app = svd(xdata[:, :, i])
+        U = app.U
+        V = transpose(app.Vt)
+        if det(V) > 0
+
+            ydata[:, :, i] = U * Diagonal(app.S)
+            ret[:, :, i] = V
+
+
+        else
+
+
+
+            U[:, 3] = -1.0 * U[:, 3]
+            V[:, 3] = -1.0 * V[:, 3]
+
+
+            ydata[:, :, i] = U * Diagonal(app.S)
+            ret[:, :, i] = V
+
+
+        end
+
+    end
+
+end
+
+function compute_ss_from_pre_p3_nokeep_reflection(xdata::Array{Float64,3}, ydata::Array{Float64,3}, ret::Array{Float64,3})
+
+    for i = axes(xdata, 3)
+
+        app = svd(xdata[:, :, i])
+
+        ydata[:, :, i] = app.U * Diagonal(app.S)
+        ret[:, :, i] = transpose(app.Vt)
+
+    end
+
+end
+
+
+
 function compute_ss_from_pre_p2_keep_reflection(xdata::Array{Float64,3}, ydata::Array{Float64,3}, ret::Array{Float64,3})
 
     for i = axes(xdata, 3)
@@ -90,8 +136,11 @@ function compute_ss_from_pre(xdata::Array{Float64,3},ydata::Array{Float64,3}, ke
         compute_ss_from_pre_p2_nokeep_reflection(xdata, ydata, ret)
     end
 
-    if p == 3
-        error()
+    if (p == 3) & (keep_reflection == true)
+        compute_ss_from_pre_p3_keep_reflection(xdata, ydata, ret)
+    end
+    if (p == 3) & (keep_reflection == false)
+        compute_ss_from_pre_p3_nokeep_reflection(xdata, ydata, ret)
     end
     
     return ret
@@ -101,6 +150,15 @@ end
 function compute_angle_from_rmat(i::Int64,angle::Matrix{Float64},  rmat::Array{Float64,3}, valp::Valuep2, reflection::KeepReflection)
 
     angle[1, i] = atan(rmat[2, 1, i], rmat[1, 1, i])
+
+    return nothing
+end
+
+function compute_angle_from_rmat(i::Int64, angle::Matrix{Float64}, rmat::Array{Float64,3}, valp::Valuep3, reflection::KeepReflection)
+    #x convention
+    angle[1, i] = atan(rmat[3, 1, i], rmat[3, 2, i])
+    angle[2, i] = acos(rmat[3, 3, i])
+    angle[3, i] = -atan(rmat[1, 3, i], rmat[2, 3, i])
 
     return nothing
 end
@@ -119,5 +177,26 @@ function standardize_reg(reg::Matrix{Float64}, valp::Valuep2)
     end
 
     reg[:,:] = reg * gammamat
+
+end
+
+function standardize_reg(reg::Matrix{Float64}, valp::Valuep3)
+
+    a1 = reg[1, :]
+    a2 = reg[2, :]
+    a3 = reg[3, :]
+    g1 = a1 / norm(a1, 2)
+    g2 = (a2 - (transpose(a2) * g1) * g1) / norm(a2 - (transpose(a2) * g1) * g1, 2)
+    g3 = (a3 - (transpose(a3) * g1) * g1 - (transpose(a3) * g2) * g2) / norm(a3 - (transpose(a3) * g1) * g1 - (transpose(a3) * g2) * g2, 2)
+
+
+
+    gammamat = reshape([g1; g2; g3], (3, 3))
+
+    if det(gammamat) < 0
+        gammamat[:, 3] = -gammamat[:, 3]
+    end
+
+    reg[:, :] = reg * gammamat
 
 end

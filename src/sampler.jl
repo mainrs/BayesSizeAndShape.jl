@@ -2,10 +2,10 @@
 #### BETA
 #### #### #### #### #### #### 
 
-function sampler_beta(xdata::Array{Float64,3}, designmatrix::Array{Float64,3}, prior::NoPriorBeta, betaMCMC::Matrix{Float64}, sigmaMCMC::Matrix{Float64}, valp::Valuep2, betastandMCMC::Matrix{Float64})
+function sampler_beta(xdata::Array{Float64,3}, designmatrix::Array{Float64,3}, prior::NoPriorBeta, betaMCMC::Matrix{Float64}, sigmaMCMC::Matrix{Float64}, valp::Valuep, betastandMCMC::Matrix{Float64})
 
 end
-function sampler_beta(xdata::Array{Float64,3}, designmatrix::Array{Float64,3}, prior::Normal, betaMCMC::Matrix{Float64}, sigmaMCMC::Matrix{Float64}, valp::Valuep2, betastandMCMC::Matrix{Float64})
+function sampler_beta(xdata::Array{Float64,3}, designmatrix::Array{Float64,3}, prior::Normal, betaMCMC::Matrix{Float64}, sigmaMCMC::Matrix{Float64}, valp::Valuep, betastandMCMC::Matrix{Float64})
 
     kd::Int64 = size( betaMCMC,1)
     p::Int64 = size( betaMCMC,2)
@@ -33,7 +33,7 @@ function sampler_beta(xdata::Array{Float64,3}, designmatrix::Array{Float64,3}, p
        
     end
     
-    #standardize_reg(betastandMCMC, valp)
+    standardize_reg(betastandMCMC, valp)
 
 end
 
@@ -75,7 +75,7 @@ end
 #### rmat
 #### #### #### #### #### #### 
 
-function sampler_rmat(xdata::Array{Float64,3}, designmatrix::Array{Float64,3}, betaMCMC::Matrix{Float64}, sigmaMCMC::Matrix{Float64}, angleMCMC::Matrix{Float64}, ydata::Array{Float64,3}, valp::Valuep2, reflection::KeepReflection, rmatMCMC::Array{Float64,3}, samp_rmat::donotsamplermat)
+function sampler_rmat(xdata::Array{Float64,3}, designmatrix::Array{Float64,3}, betaMCMC::Matrix{Float64}, sigmaMCMC::Matrix{Float64}, angleMCMC::Matrix{Float64}, ydata::Array{Float64,3}, valp::Valuep, reflection::KeepReflection, rmatMCMC::Array{Float64,3}, samp_rmat::donotsamplermat)
 
 
 end
@@ -120,5 +120,52 @@ function sampler_rmat(xdata::Array{Float64,3}, designmatrix::Array{Float64,3}, b
 
    
    
+
+end
+
+function sampler_rmat(xdata::Array{Float64,3}, designmatrix::Array{Float64,3}, betaMCMC::Matrix{Float64}, sigmaMCMC::Matrix{Float64}, angleMCMC::Matrix{Float64}, ydata::Array{Float64,3}, valp::Valuep3, reflection::KeepReflection, rmatMCMC::Array{Float64,3}, samp_rmat::dosamplermat)
+
+    error("sampler_rmat p=3 - Not completed yet")
+
+    kd::Int64 = size(betaMCMC, 1)
+    p::Int64 = size(betaMCMC, 2)
+    n::Int64 = size(xdata, 3)
+    k::Int64 = size(xdata, 1)
+
+    invMat = Symmetric(inv(sigmaMCMC))
+    for j = 1:n
+
+        mui = designmatrix[:, :, j] * betaMCMC[:, :]
+        #@toggled_assert size(mui) == (k,p)
+
+        Ai = transpose(mui) * invMat * ydata[:, :, j]
+        #println(size(Ai))
+
+        
+
+
+        x1 = Ai[1, 1] + Ai[2, 2]
+        x2 = Ai[2, 1] - Ai[1, 2]
+        #x2 = Ai[1, 2] - Ai[2, 1]
+
+        kvonmises = sqrt(x1^2 + x2^2)
+
+        muvonmises = atan(x2 / kvonmises, x1 / kvonmises)
+        #muvonmises = atan(x1 / kvonmises, x2 / kvonmises)
+
+        angleMCMC[1, j] = rand(VonMises(muvonmises, kvonmises))
+
+        rmatMCMC[1, 1, j] = cos(angleMCMC[1, j])
+        rmatMCMC[1, 2, j] = -sin(angleMCMC[1, j])
+        rmatMCMC[2, 1, j] = sin(angleMCMC[1, j])
+        rmatMCMC[2, 2, j] = cos(angleMCMC[1, j])
+
+
+        #xdata[:, :, j] = ydata[:, :, j] * transpose(rmatMCMC[:,:,j])
+    end
+    compute_xdata(xdata, ydata, rmatMCMC)
+
+
+
 
 end

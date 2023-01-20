@@ -52,7 +52,7 @@ include(joinpath("sampler.jl"))
     DoKeepReflection,
     GeneralSigma,
     standardize_reg,
-    mcmc
+    SizeAndShapeMCMC
 
 
 end # module

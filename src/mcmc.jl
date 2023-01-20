@@ -1,5 +1,6 @@
 
-function mcmc(;
+"""
+    SizeAndShapeMCMC(;
     dataset::Array{Float64,3}, 
     fm::FormulaTerm = @formula(1~ 1),
     covariates::DataFrame, #
@@ -10,10 +11,46 @@ function mcmc(;
     ),
     betaprior::ContinuousUnivariateDistribution = Normal(0.0, 10000.0),
     sigmaprior::ContinuousMatrixDistribution,
-
     beta_init::Matrix{Float64},
     sigma_init::Symmetric{Float64,Matrix{Float64}},
-    rmat_init::Array{Float64,3} ,
+    rmat_init::Array{Float64,3},
+    dormat::Bool,
+    reflection::Reflection = KeepReflection(),
+    sigmatype::SigmaType = GeneralSigma()
+)
+
+This function compute the posterior samples from the regression model.
+   
+...
+# Arguments
+- `dataset::Array{Float64,3}`:
+- `fm::FormulaTerm = @formula(1~ 1)`:
+- `covariates::DataFrame`:
+- `iterations::NamedTuple{(:iter, :burnin, :thin),Tuple{Int64,Int64,Int64}}`:
+- `betaprior::ContinuousUnivariateDistribution = Normal(0.0, 10000.0)`:,
+- `sigmaprior::ContinuousMatrixDistribution`:,
+- `beta_init::Matrix{Float64}`:,
+- `sigma_init::Symmetric{Float64,Matrix{Float64}}`:,
+- `rmat_init::Array{Float64,3}`:,
+- `dormat::Bool`:,
+- `reflection::Reflection = KeepReflection()`:,
+- `sigmatype::SigmaType = GeneralSigma()`:
+...
+"""
+function SizeAndShapeMCMC(;
+    dataset::Array{Float64,3}, 
+    fm::FormulaTerm = @formula(1~ 1),
+    covariates::DataFrame, #
+    iterations::NamedTuple{(:iter, :burnin, :thin),Tuple{Int64,Int64,Int64}} =(
+        iter=1000,
+        burnin=200,
+        thin=2
+    ),
+    betaprior::ContinuousUnivariateDistribution = Normal(0.0, 10000.0),
+    sigmaprior::ContinuousMatrixDistribution,
+    beta_init::Matrix{Float64},
+    sigma_init::Symmetric{Float64,Matrix{Float64}},
+    rmat_init::Array{Float64,3},
     dormat::Bool,
     reflection::Reflection = KeepReflection(),
     sigmatype::SigmaType = GeneralSigma()
@@ -90,11 +127,13 @@ function mcmc(;
                 compute_angle_from_rmat(i, angleMCMC, rmatMCMC, valp, reflection)
             end
         else
-            error()
+            for i = 1:n
+                compute_angle_from_rmat(i, angleMCMC, rmatMCMC, valp, reflection)
+            end
         end
 
     elseif typeof(reflection) == donotKeepReflection
-        error()
+        error("donotKeepReflection not implemented yet")
     end
 
     samp_rmat = dosamplermat()
