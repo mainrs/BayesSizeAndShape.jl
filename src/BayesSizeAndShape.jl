@@ -25,6 +25,7 @@ include(joinpath("types.jl"))
 include(joinpath("general_functions.jl"))
 include(joinpath("mcmc.jl"))
 include(joinpath("sampler.jl"))
+include(joinpath("wrappers.jl"))
 # include(joinpath("func_covariance_new.jl"))
 # include(joinpath("func_project.jl"))
 # include(joinpath("new_func_project.jl"))
@@ -52,7 +53,9 @@ include(joinpath("sampler.jl"))
     DoKeepReflection,
     GeneralSigma,
     standardize_reg,
-    SizeAndShapeMCMC
+    SizeAndShapeMCMC,
+    Valuep2,
+    compute_dessignmatrix
 
 
 end # module

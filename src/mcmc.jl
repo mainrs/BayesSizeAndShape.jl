@@ -1,43 +1,5 @@
 
-"""
-    SizeAndShapeMCMC(;
-    dataset::Array{Float64,3}, 
-    fm::FormulaTerm = @formula(1~ 1),
-    covariates::DataFrame, #
-    iterations::NamedTuple{(:iter, :burnin, :thin),Tuple{Int64,Int64,Int64}} =(
-        iter=1000,
-        burnin=200,
-        thin=2
-    ),
-    betaprior::ContinuousUnivariateDistribution = Normal(0.0, 10000.0),
-    sigmaprior::ContinuousMatrixDistribution,
-    beta_init::Matrix{Float64},
-    sigma_init::Symmetric{Float64,Matrix{Float64}},
-    rmat_init::Array{Float64,3},
-    dormat::Bool,
-    reflection::Reflection = KeepReflection(),
-    sigmatype::SigmaType = GeneralSigma()
-)
-
-This function compute the posterior samples from the regression model.
-   
-...
-# Arguments
-- `dataset::Array{Float64,3}`:
-- `fm::FormulaTerm = @formula(1~ 1)`:
-- `covariates::DataFrame`:
-- `iterations::NamedTuple{(:iter, :burnin, :thin),Tuple{Int64,Int64,Int64}}`:
-- `betaprior::ContinuousUnivariateDistribution = Normal(0.0, 10000.0)`:,
-- `sigmaprior::ContinuousMatrixDistribution`:,
-- `beta_init::Matrix{Float64}`:,
-- `sigma_init::Symmetric{Float64,Matrix{Float64}}`:,
-- `rmat_init::Array{Float64,3}`:,
-- `dormat::Bool`:,
-- `reflection::Reflection = KeepReflection()`:,
-- `sigmatype::SigmaType = GeneralSigma()`:
-...
-"""
-function SizeAndShapeMCMC(;
+function mcmc(;
     dataset::Array{Float64,3}, 
     fm::FormulaTerm = @formula(1~ 1),
     covariates::DataFrame, #

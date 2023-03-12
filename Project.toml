@@ -1,6 +1,6 @@
 name = "BayesSizeAndShape"
 uuid = "cb1733c5-7124-4973-b058-890cf74b35cb"
-authors = ["gianluca.mastrantonio <mastrantonio.gluca@gmail.com>"]
+authors = ["Gianluca Mastrantonio <mastrantonio.gluca@gmail.com>", "Giovanna Jona Lasinio <giovanna.jonalasinio@uniroma1.it>"]
 version = "0.1.2"
 
 [deps]
