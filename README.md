@@ -1,4 +1,4 @@
-# BayesSizeAndShape.jl
+# BayesSizeAndShape
 
 <!--![Lifecycle](https://img.shields.io/badge/lifecycle-experimental-orange.svg)<!--
 ![Lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)
@@ -13,30 +13,24 @@
 [![Documentation](https://img.shields.io/badge/docs-master-blue.svg)](https://GianlucaMastrantonio.github.io/BayesSizeAndShape.jl/dev)
 -->
 
-To install the package, simply do
-```julia
-julia> ]
 
-pkg> add BayesSizeAndShape
-```
-at the julia prompt.
 
 # **BayesSizeAndShape**
 
 This package implements a Bayesian regression for size-and-shape data, based on the CITE.
-At the present moment, the package implements a model for two-dimensional data with reflection information. The function to use is `SizeAndShapeMCMC`
+At the present moment, the package implements a model for two-dimensional data with reflection information. The function to use is `SizeAndShapeMCMC_p2withreflection`
 
 ### **Basic Usage**
 
-In the **demo** directory, there is a julia file with an example of how to implement the model, which we will describe also here. 
+In the **demo** directory, there is a **julia** file with an example of how to implement the model, which we will describe also here. 
 
 Let 
 * n be the number of shapes;
-* k be the number of landmark (for the pre-form matrix **X**);
-* d be the dimension of each landmark (only p=2 is implemented)
-* p be the number of covariates to use;
+* k be the number of landmarks (for the pre-form matrix **X**);
+* p be the dimension of each landmark (only p=2 is implemented)
+* d be the number of covariates to use;
 
-We first simulate the regressive coefficients, which are in the `reg` object -  `reg` must be of  dimension (kd, p):
+We first simulate the regressive coefficients, which are in the `reg` object - `reg` must be of dimension (kd, p):
 ```julia
 n::Int64 = 100;
 p::Int64 = 2;
@@ -47,12 +41,12 @@ d::Int64 = 3;
 reg::Matrix{Float64} = zeros(Float64, k*d, p);
 reg[:] = rand(Normal(0.0, 5.0), prod(size(reg)));
 ```
-The regressive coefficients are standardized with the function `standardize_reg`. The second argument is here used to specify the dimension of each landmark, `Value2()` is used for two-dimensional data, while `Valuep3()` (not yet implemented) for three-dimensional data:  
+The regressive coefficients are standardized with the function `standardize_reg`, for identifiability purposes. The second argument is here used to specify the dimension of each landmark, `Value2()` is used for two-dimensional data, while `Valuep3()` (not yet implemented) is for three-dimensional data:  
 ```julia
 standardize_reg(reg::Matrix{Float64}, Valuep2())
 ```
 
-A design matrix is simulated and the function `compute_dessignmatrix` is used to transform to be used in the model - `zmat`  must be of  dimension (n, d):
+A `DataFrame` named `zmat`, containing the covariates is simulated, and the function `compute_designmatrix` is used to compute the design matrix - `zmat` must be of dimension (n, d):
 ```julia
 zmat = zeros(Float64,  n,d);
 zmat[:] = rand(Normal(0.0, 5.0), prod(size(zmat)));
@@ -63,10 +57,10 @@ for i = 2:size(zmat,2)
     zmat[:, i] = zmat[:, i] .- mean(zmat[:, i])
 
 end
-design_matrix = compute_dessignmatrix(zmat, k);
+design_matrix = compute_designmatrix(zmat, k);
 ```
 
-The pre-form matrix **X**, here saved in the object `dataset_complete`, is simulated from a multivariate normal, and its size-and-shape version, contained in the object `dataset`, is obtained by using the function `compute_ss_from_pre`. The third argument of the function is used to specify if reflection must be kept (`true` is the only available option in this implementation)
+The pre-form matrix **X**, here saved in the object `dataset_complete`, is simulated from a multivariate normal, and its size-and-shape version, contained in the object `dataset`, is obtained by using the function `compute_ss_from_pre`. The third argument of the function is used to specify if reflection must be kept (`true` is the only available option in this implementation) 
 ```julia
 
 sigma::Symmetric{Float64,Matrix{Float64}} = Symmetric(rand(InverseWishart(k + 2, 5.0 * Matrix{Float64}(I, k, k))));
@@ -82,9 +76,9 @@ end
 rmat = compute_ss_from_pre(dataset_complete, dataset, true);
 ```
 
-Posterior samples are obtained with the function `SizeAndShapeMCMC`. To specify the regressive formula, you can use `@formula`, where on the left-hand size there must be 1 and in the right-hand size is the actual regressive formula.
+Posterior samples are obtained with the function `SizeAndShapeMCMC_p2withreflection`. To specify the regressive formula, you can use `@formula`, where on the left-hand side there must be 1 and on the right-hand side is the actual regressive formula.
 ```julia
-betaOUT, sigmaOUT, rmatOUT, angleOUT = SizeAndShapeMCMC(;
+betaOUT, sigmaOUT, rmatOUT, angleOUT = SizeAndShapeMCMC_p2withreflection(;
     dataset = dataset,
     fm = @formula(1 ~ x1+x2+x3),
     covariates = zmat,
@@ -96,8 +90,13 @@ betaOUT, sigmaOUT, rmatOUT, angleOUT = SizeAndShapeMCMC(;
     rmat_init = reshape(vcat([Matrix{Float64}(I, p, p)[:] for i = 1:n]...), (p, p, n))
 );
 ```
-The objects `betaOUT`, `sigmaOUT`, `rmatOUT`, `angleOUT` contains the posterior samples (the samples are on the first indices of these objects). `angleOUT` contains the angles used to compute the matrix **R** which are in `rmatOUT`.
+The objects `betaOUT`, `sigmaOUT`, `rmatOUT`, `angleOUT` contain the posterior samples (the samples are on the first indices of these objects). `angleOUT` contains the angles used to compute the matrix **R** in `rmatOUT`.
 
 ## Citing
 
 See `CITATION.bib`
+
+
+
+
+

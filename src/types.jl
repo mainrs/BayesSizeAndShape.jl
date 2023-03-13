@@ -71,6 +71,13 @@ struct KeepReflection <: Reflection
     end
 
 end
+struct KeepReflection2 <: Reflection
+
+    function KeepReflection2()
+        new()
+    end
+
+end
 
 struct donotKeepReflection <: Reflection
 

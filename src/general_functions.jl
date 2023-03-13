@@ -1,4 +1,16 @@
 function compute_dessignmatrix(zmat::Matrix{Float64}, k::Int64)::Array{Float64,3}
+    println("please use compute_designmatrix instead of compute_dessignmatrix")
+    return compute_designmatrix(zmat, k)
+
+end
+
+function compute_dessignmatrix(zmat::DataFrame, k::Int64)::Array{Float64,3}
+    println("please use compute_designmatrix instead of compute_dessignmatrix")
+    return compute_designmatrix(zmat, k)
+
+end
+
+function compute_designmatrix(zmat::Matrix{Float64}, k::Int64)::Array{Float64,3}
 
     n, d = size(zmat)
     res::Array{Float64,3} = zeros(Float64, k, k * d, n)
@@ -10,7 +22,7 @@ function compute_dessignmatrix(zmat::Matrix{Float64}, k::Int64)::Array{Float64,3
 
 end
 
-function compute_dessignmatrix(zmat::DataFrame, k::Int64)::Array{Float64,3}
+function compute_designmatrix(zmat::DataFrame, k::Int64)::Array{Float64,3}
 
     n, d = size(zmat)
     res::Array{Float64,3} = zeros(Float64, k, k * d, n)

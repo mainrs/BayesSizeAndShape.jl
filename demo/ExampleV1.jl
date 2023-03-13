@@ -30,7 +30,7 @@ for i = 2:size(zmat,2)
     zmat[:, i] = zmat[:, i] .- mean(zmat[:, i])
 
 end
-design_matrix = compute_dessignmatrix(zmat, k); # dimensions  k, k * d, n
+design_matrix = compute_designmatrix(zmat, k); # dimensions  k, k * d, n
 
 
 # covariance
@@ -50,7 +50,7 @@ rmat = compute_ss_from_pre(dataset_complete, dataset, true);
 ### ### ### ### ### 
 ### MCMC
 ### ### ### ### ### 
-betaOUT, sigmaOUT, rmatOUT, angleOUT = SizeAndShapeMCMC(;
+betaOUT, sigmaOUT, rmatOUT, angleOUT = SizeAndShapeMCMC_p2withreflection(;
     dataset = dataset,
     fm = @formula(1 ~ x1+x2+x3),
     covariates = zmat,

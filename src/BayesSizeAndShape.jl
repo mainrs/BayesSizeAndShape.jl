@@ -53,8 +53,9 @@ include(joinpath("wrappers.jl"))
     DoKeepReflection,
     GeneralSigma,
     standardize_reg,
-    SizeAndShapeMCMC,
+    SizeAndShapeMCMC_p2withreflection,
     Valuep2,
+    compute_designmatrix,
     compute_dessignmatrix
 
 

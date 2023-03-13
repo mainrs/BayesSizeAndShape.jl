@@ -48,7 +48,7 @@ function mcmc(;
 
     end
 
-    designmatrix = compute_dessignmatrix(modelmatrix(fm, covariates), k) # dimensions  k, k * d, n
+    designmatrix = compute_designmatrix(modelmatrix(fm, covariates), k) # dimensions  k, k * d, n
     
     d::Int64 = size(designmatrix_v2, 2)
     #println(size(designmatrix), " ", size(modelmatrix(fm, covariates)))
