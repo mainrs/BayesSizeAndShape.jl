@@ -16,6 +16,7 @@
         rmat_init::Array{Float64,3}
 )
 Posterior sample from the size-and-shape model for two-dimensional data with reflection information. 
+The functions returns 4 arrays, with the psoterior samples of the regressive coefficients, covariance matrix, rotation matrices, and its rotation angles, respectively
 
 
 # Arguments

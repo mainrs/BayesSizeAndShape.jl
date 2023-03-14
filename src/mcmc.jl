@@ -32,9 +32,10 @@ function mcmc(;
     if p ==2
         valp = Valuep2()
     elseif p == 3
+        error("p (size(dataset, 1)) must be == 2")
         valp = Valuep3()
     else
-        error("p must be <= 3")
+        error("p (size(dataset, 1)) must be <= 3")
     end
     
    
@@ -58,6 +59,12 @@ function mcmc(;
     @assert size(designmatrix, 3) == size(dataset, 3) # n
     @assert size(designmatrix, 2) == size(dataset, 1) * size(designmatrix_v2,2) #k d
     @assert size(beta_init, 2) == size(dataset, 2) # p
+    
+    if size(beta_init, 1) >= size(designmatrix, 2)
+        beta_init = beta_init[1:(size(designmatrix, 2)),:]
+    else
+        error("size(beta_init, 1) must be greater or equal to size(designmatrix, 2) - Increase the first dimension of beta_init")
+    end
     @assert size(beta_init, 1) == size(designmatrix, 2) # k d
     @assert size(sigma_init, 1) == size(dataset, 1)
     @assert size(rmat_init, 1) == size(dataset, 2)

@@ -1,14 +1,4 @@
-function compute_dessignmatrix(zmat::Matrix{Float64}, k::Int64)::Array{Float64,3}
-    println("please use compute_designmatrix instead of compute_dessignmatrix")
-    return compute_designmatrix(zmat, k)
 
-end
-
-function compute_dessignmatrix(zmat::DataFrame, k::Int64)::Array{Float64,3}
-    println("please use compute_designmatrix instead of compute_dessignmatrix")
-    return compute_designmatrix(zmat, k)
-
-end
 
 function compute_designmatrix(zmat::Matrix{Float64}, k::Int64)::Array{Float64,3}
 
@@ -212,3 +202,4 @@ function standardize_reg(reg::Matrix{Float64}, valp::Valuep3)
     reg[:, :] = reg * gammamat
 
 end
+

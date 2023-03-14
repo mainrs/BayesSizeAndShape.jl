@@ -1,28 +1,11 @@
-# BayesSizeAndShape
-
-<!--![Lifecycle](https://img.shields.io/badge/lifecycle-experimental-orange.svg)<!--
-![Lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)
-![Lifecycle](https://img.shields.io/badge/lifecycle-stable-green.svg)
-![Lifecycle](https://img.shields.io/badge/lifecycle-retired-orange.svg)
-![Lifecycle](https://img.shields.io/badge/lifecycle-archived-red.svg)
-![Lifecycle](https://img.shields.io/badge/lifecycle-dormant-blue.svg) -->
-<!--[![Build Status](https://travis-ci.com/GianlucaMastrantonio/BayesSizeAndShape.jl.svg?branch=master)](https://travis-ci.com/GianlucaMastrantonio/BayesSizeAndShape.jl)
-[![codecov.io](http://codecov.io/github/GianlucaMastrantonio/BayesSizeAndShape.jl/coverage.svg?branch=master)](http://codecov.io/github/GianlucaMastrantonio/BayesSizeAndShape.jl?branch=master)-->
-<!--
-[![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://GianlucaMastrantonio.github.io/BayesSizeAndShape.jl/stable)
-[![Documentation](https://img.shields.io/badge/docs-master-blue.svg)](https://GianlucaMastrantonio.github.io/BayesSizeAndShape.jl/dev)
--->
-
-
-
 # **BayesSizeAndShape**
 
-This package implements a Bayesian regression for size-and-shape data, based on the CITE.
+This package implements a Bayesian regression for size-and-shape data, based on "Di Noia, A., Mastrantonio, G., and Jona Lasinio, G., “Bayesian Size-and-Shape regression modelling”, <i>arXiv e-prints</i>, 2023".
 At the present moment, the package implements a model for two-dimensional data with reflection information. The function to use is `SizeAndShapeMCMC_p2withreflection`
 
 ### **Basic Usage**
 
-In the **demo** directory, there is a **julia** file with an example of how to implement the model, which we will describe also here. 
+In the **demo** directory, there is a **julia** file **Ex_p2withreflection.jl** with an example of how to implement the model, which we will describe also here. 
 
 Let 
 * n be the number of shapes;
@@ -62,9 +45,7 @@ design_matrix = compute_designmatrix(zmat, k);
 
 The pre-form matrix **X**, here saved in the object `dataset_complete`, is simulated from a multivariate normal, and its size-and-shape version, contained in the object `dataset`, is obtained by using the function `compute_ss_from_pre`. The third argument of the function is used to specify if reflection must be kept (`true` is the only available option in this implementation) 
 ```julia
-
 sigma::Symmetric{Float64,Matrix{Float64}} = Symmetric(rand(InverseWishart(k + 2, 5.0 * Matrix{Float64}(I, k, k))));
-
 dataset_complete = zeros(Float64,k,p,n);
 dataset = zeros(Float64, k, p, n);
 for i_n = 1:n
@@ -90,11 +71,21 @@ betaOUT, sigmaOUT, rmatOUT, angleOUT = SizeAndShapeMCMC_p2withreflection(;
     rmat_init = reshape(vcat([Matrix{Float64}(I, p, p)[:] for i = 1:n]...), (p, p, n))
 );
 ```
-The objects `betaOUT`, `sigmaOUT`, `rmatOUT`, `angleOUT` contain the posterior samples (the samples are on the first indices of these objects). `angleOUT` contains the angles used to compute the matrix **R** in `rmatOUT`.
+The objects `betaOUT`, `sigmaOUT`, `rmatOUT`, `angleOUT` contain the posterior samples. `angleOUT` contains the angles used to compute the matrix **R** in `rmatOUT`.
+
+### **OUTPUT**
+
+ - `betaOUT`: dimensions (l,kd, p), where l is the number of posterior samples. The posterior samples of the c-th regressive coefficient on the d-th landmark for dimension g is `betaOUT[:,(c-1)*k + d, g]`;
+ - `sigmaOUT`: dimensions (l,k, k), where l is the number of posterior samples. The element `sigmaOUT[j,:,:]` contains the j-th posterior sample of the covariance matrix;
+ - `rmatOUT`: dimensions (l,p, p,n), where l is the number of posterior samples. The element `rmatOUT[j,:,:,a]` contains the j-th posterior sample of the a-th rotation matrix.
+ 
 
 ## Citing
 
-See `CITATION.bib`
+See `CITATION.bib` or use
+
+"Di Noia, A., Mastrantonio, G., and Jona Lasinio, G., “Bayesian Size-and-Shape regression modelling”, <i>arXiv e-prints</i>, 2023".
+
 
 
 
