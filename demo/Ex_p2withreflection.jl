@@ -2,8 +2,8 @@
 ### packages
 ### ### ### ### ### 
 
-using Random, Distributions, LinearAlgebra,  StatsBase
-using Kronecker, DataFrames,StatsModels
+using Random, Distributions, LinearAlgebra, StatsBase
+using DataFrames, StatsModels, CategoricalArrays
 using BayesSizeAndShape
 
 ### ### ### ### ### 
@@ -21,16 +21,15 @@ reg[:] = rand(Normal(0.0, 5.0), prod(size(reg)));
 standardize_reg(reg::Matrix{Float64}, Valuep2())
 
 
-zmat = zeros(Float64,  n,d);
-zmat[:] = rand(Normal(0.0, 5.0), prod(size(zmat)));
-zmat[:,1] .= 1.0;
-zmat = DataFrame(zmat, :auto)
-for i = 2:size(zmat,2)
-
-    zmat[:, i] = zmat[:, i] .- mean(zmat[:, i])
-
-end
-design_matrix = compute_designmatrix(zmat, k); # dimensions  k, k * d, n
+zmat = DataFrame(
+    x1 = rand(Normal(10.0,1.0 ),n),
+    x2 = sample(["A", "B"],n)
+)
+zmat[:,1] = (zmat[:,1] .- mean(zmat[:,1])) ./ std(zmat[:,1])
+zmat.x2 = categorical(zmat.x2)
+zmat_modmat_ModelFrame = ModelFrame(@formula(1 ~ 1+x1+x2), zmat);
+zmat_modmat = ModelMatrix(zmat_modmat_ModelFrame).m
+design_matrix = compute_designmatrix(zmat_modmat, k); # dimensions  k, k * d, n
 
 
 # covariance
@@ -50,15 +49,16 @@ rmat = compute_ss_from_pre(dataset_complete, dataset, true);
 ### ### ### ### ### 
 ### MCMC
 ### ### ### ### ### 
-betaOUT, sigmaOUT, rmatOUT, angleOUT = SizeAndShapeMCMC_p2withreflection(;
+betaout, sigmaout = SizeAndShapeMCMC(;
     dataset = dataset,
-    fm = @formula(1 ~ x1+x2+x3),
+    fm = @formula(1 ~ 1+x1),
     covariates = zmat,
     iterations=(iter=1000, burnin=200, thin=2),
     betaprior = Normal(0.0, 10000.0),
     sigmaprior=InverseWishart(k + 2, 5.0 * Matrix{Float64}(I, k, k)),
     beta_init= zeros(Float64, k * d, p),
     sigma_init = Symmetric(Matrix{Float64}(I, k, k)),
-    rmat_init = reshape(vcat([Matrix{Float64}(I, p, p)[:] for i = 1:n]...), (p, p, n))
+    rmat_init = reshape(vcat([Matrix{Float64}(I, p, p)[:] for i = 1:n]...), (p, p, n)),
+    reflection = true
 );
 

@@ -126,6 +126,18 @@ function compute_ss_from_pre_p2_nokeep_reflection(xdata::Array{Float64,3}, ydata
 end
 
 
+"""
+    compute_ss_from_pre(xdata::Array{Float64,3},ydata::Array{Float64,3}, keep_reflection::Bool)::Array{Float64,3}
+
+Given the array of preform matrix xdata (xdata[:,:,i] is the i-th preform matrix), the function computes the size-and-shape data and store it in ydata.
+The function return the array of associated rotation matrix R, such that xdata = ydata*R. keep_reflection is a boolean that is used to indicate if R in O(p) (keep_reflection=false) or R in SO(p) (keep_reflection=true) 
+
+    compute_ss_from_pre(xdata::Array{Float64,3}, keep_reflection::Bool)::Array{Float64,3}
+
+Given the array of preform matrix xdata (xdata[:,:,i] is the i-th preform matrix), the function computes the size-and-shape data.
+The function retunn the size-and-shape ydata. keep_reflection is a boolean that is used to indicate if R in O(p) (keep_reflection=false) or R in SO(p) (keep_reflection=true) 
+
+"""
 function compute_ss_from_pre(xdata::Array{Float64,3},ydata::Array{Float64,3}, keep_reflection::Bool)::Array{Float64,3}
 
     p = size(xdata, 2) 
@@ -144,10 +156,39 @@ function compute_ss_from_pre(xdata::Array{Float64,3},ydata::Array{Float64,3}, ke
     if (p == 3) & (keep_reflection == false)
         compute_ss_from_pre_p3_nokeep_reflection(xdata, ydata, ret)
     end
+
+    if p >3
+        error("size(xdata, 2) must be 2 or 3")
+    end
     
     return ret
 
 end
+
+function compute_ss_from_pre(xdata::Array{Float64,3}, keep_reflection::Bool)::Array{Float64,3}
+
+    ydata::Array{Float64,3} = deepcopy(xdata)
+    p = size(xdata, 2) 
+    ret = zeros(Float64, p, p, size(xdata, 3))
+    if (p == 2) & (keep_reflection == true)
+        compute_ss_from_pre_p2_keep_reflection(xdata, ydata, ret)
+    end
+
+    if (p == 2) & (keep_reflection == false)
+        compute_ss_from_pre_p2_nokeep_reflection(xdata, ydata, ret)
+    end
+
+    if (p == 3) & (keep_reflection == true)
+        compute_ss_from_pre_p3_keep_reflection(xdata, ydata, ret)
+    end
+    if (p == 3) & (keep_reflection == false)
+        compute_ss_from_pre_p3_nokeep_reflection(xdata, ydata, ret)
+    end
+    
+    return ydata
+
+end
+
 
 function compute_angle_from_rmat(i::Int64,angle::Matrix{Float64},  rmat::Array{Float64,3}, valp::Valuep2, reflection::KeepReflection)
 
@@ -203,3 +244,30 @@ function standardize_reg(reg::Matrix{Float64}, valp::Valuep3)
 
 end
 
+"""
+    compute_helmertized_configuration(landmark::Array{Float64,3})::Array{Float64,3}
+
+Given the array of landmarks (landmark[:,:,i] is the matrix of landmarks of the i-th shape), it computes and returns the helmertized configuration
+"""
+function compute_helmertized_configuration(landmark::Array{Float64,3})::Array{Float64,3} 
+
+    k::Int64 = size(landmark,1)
+    H::Matrix{Float64} = zeros(Float64,k,k)
+    ret::Array{Float64,3} = zeros(Float64,size(landmark,1)-1,size(landmark,2),size(landmark,3))
+    for i = 1:k
+        H[i,i] = (i-1)/(i*(i-1))
+    end
+    for i = 2:k
+        for j = 1:(i-1)
+            H[i,i] = -1.0/(i*(i-1))
+        end
+    end
+    H = H[2:end,:]
+
+    for i = 1:size(landmark,3)
+        ret[:,:,i] = H*landmark[:,:,i]
+    end
+
+    return ret
+
+end

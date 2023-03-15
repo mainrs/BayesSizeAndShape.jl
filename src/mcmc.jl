@@ -1,5 +1,5 @@
 
-function mcmc(;
+function generalSizeAndShapeMCMC(;
     dataset::Array{Float64,3}, 
     fm::FormulaTerm = @formula(1~ 1),
     covariates::DataFrame, #
@@ -16,7 +16,16 @@ function mcmc(;
     dormat::Bool,
     reflection::Reflection = KeepReflection(),
     sigmatype::SigmaType = GeneralSigma()
-)
+)::Tuple{
+    Array{Float64, 3}, 
+    Array{Float64, 3}, 
+    Array{Float64, 4}, 
+    Array{Float64, 3}, 
+    Vector{String}, 
+    Int64, 
+    Int64, 
+    Int64, 
+    Int64}
 
 
     
@@ -39,17 +48,28 @@ function mcmc(;
     end
     
    
+    covariates_copy = deepcopy(covariates)
+    for i = 1:size(covariates_copy,2)
+        if  isa(covariates_copy[:,i], CategoricalArray)
 
-    designmatrix_v2 = modelmatrix(fm, covariates) #n, d
-
-    @assert sum(designmatrix_v2[:, 1] .== 1) == n "intercept needed"
-    for i = 2:size(designmatrix_v2, 2)
-
-        designmatrix_v2[:, i] = designmatrix_v2[:, i] .- mean(designmatrix_v2[:, i])
-
+        elseif isa(covariates_copy[1,i], Real)
+            covariates_copy[:,i] = (covariates_copy[:,i] .- mean(covariates_copy[:,i])) ./ std(covariates_copy[:,i])
+        else
+            error("Only factors or Real variables are allowed in covariates")
+        end
     end
 
-    designmatrix = compute_designmatrix(modelmatrix(fm, covariates), k) # dimensions  k, k * d, n
+    designmatrix_v2_app = ModelFrame(fm, covariates_copy);
+    designmatrix_v2 = ModelMatrix(designmatrix_v2_app).m
+    colnames_modelmatrix = coefnames(designmatrix_v2_app)
+
+    @assert sum(designmatrix_v2[:, 1] .== 1) == n "intercept needed"
+    #for i = 2:size(designmatrix_v2, 2)
+
+    #    designmatrix_v2[:, i] = designmatrix_v2[:, i] .- mean(designmatrix_v2[:, i])
+
+    #end
+    designmatrix = compute_designmatrix(designmatrix_v2, k) # dimensions  k, k * d, n
     
     d::Int64 = size(designmatrix_v2, 2)
     #println(size(designmatrix), " ", size(modelmatrix(fm, covariates)))
@@ -71,7 +91,7 @@ function mcmc(;
     @assert size(rmat_init, 2) == size(dataset, 2)
     @assert size(rmat_init, 3) == size(dataset, 3)
 
-    designmatrix_v2 = nothing
+    #designmatrix_v2 = nothing
 
     xdata = deepcopy(dataset)
     compute_xdata(xdata, dataset, rmat_init)
@@ -163,8 +183,8 @@ function mcmc(;
 
 
             sampler_beta(xdata, designmatrix, betaprior, betaMCMC, sigmaMCMC, valp, betastandMCMC)
-            #betaMCMC[:, :] = betastandMCMC[:,:]
             sampler_rmat(xdata, designmatrix, betaMCMC, sigmaMCMC, angleMCMC, dataset, valp, reflection, rmatMCMC, samp_rmat)
+            #sampler_rmat(xdata, designmatrix, betastandMCMC, sigmaMCMC, angleMCMC, dataset, valp, reflection, rmatMCMC, samp_rmat)
             sampler_sigma(xdata, designmatrix, sigmaprior, betaMCMC, sigmaMCMC, sigmatype)
             
 
@@ -182,7 +202,7 @@ function mcmc(;
 
     end
 
-    return betaOUT, sigmaOUT, rmatOUT, angleOUT
+    return betaOUT, sigmaOUT, rmatOUT, angleOUT, colnames_modelmatrix, k, p, n, d 
 
 
 end
