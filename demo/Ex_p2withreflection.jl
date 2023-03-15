@@ -51,7 +51,7 @@ rmat = compute_ss_from_pre(dataset_complete, dataset, true);
 ### ### ### ### ### 
 betaout, sigmaout = SizeAndShapeMCMC(;
     dataset = dataset,
-    fm = @formula(1 ~ 1+x1),
+    fm = @formula(1 ~ 1+ x1 + x2),
     covariates = zmat,
     iterations=(iter=1000, burnin=200, thin=2),
     betaprior = Normal(0.0, 10000.0),

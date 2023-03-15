@@ -77,7 +77,7 @@ Posterior samples are obtained with the function `SizeAndShapeMCMC_p2withreflect
 ```julia
 betaout, sigmaout = SizeAndShapeMCMC(;
     dataset = dataset,
-    fm = @formula(1 ~ 1 + x1),
+    fm = @formula(1 ~ 1 + x1 + x2),
     covariates = zmat,
     iterations = (iter=1000, burnin=200, thin=2),
     betaprior = Normal(0.0, 10000.0),
