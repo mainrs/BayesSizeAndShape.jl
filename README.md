@@ -203,11 +203,11 @@ julia> predictive_mean = sample_predictive_zbr(outmcmc);
 ```
 which compute the posterior samples of
 $$
-\boldsymbol{\mu}\_i^* = \text{vec}\left(\sum_{h=1}^dz\_{ih}\mathbf{B}\_h \mathbf{R}\_i\right)
+\boldsymbol{\mu}\_i^* = \text{vec}\left(\sum\_{h=1}^dz\_{ih}\mathbf{B}\_h \mathbf{R}\_i\right)
 $$
 or from the predictive distribution
 $$
-\mathbf{X}\_i^* = \text{vec}\left(\sum_{h=1}^dz\_{ih}\mathbf{B}_h \mathbf{R}\_i\right)+\boldsymbol{\epsilon}_{i} ,\qquad \boldsymbol{\epsilon}_{i}\sim\mathcal{N}\_{k p}\left(  \mathbf{0}, \mathbf{I}\_p \otimes \boldsymbol{\Sigma}\right)
+\mathbf{X}\_i^* = \text{vec}\left(\sum_{h=1}^dz\_{ih}\mathbf{B}\_h \mathbf{R}\_i\right)+\boldsymbol{\epsilon}\_{i} ,\qquad \boldsymbol{\epsilon}\_{i}\sim\mathcal{N}\_{k p}\left(  \mathbf{0}, \mathbf{I}\_p \otimes \boldsymbol{\Sigma}\right)
 $$
 with the function 
 ```julia
