@@ -19,9 +19,7 @@ To fix notation, we assume the following
 * `k+1` be the number of recorded landmark for each object
 * `p` be the dimension of each landmark (only p=2 or p=3)
 
-The model estimated is
-
-$\text{vec}(\mathbf{Y}_i \mathbf{R}_i') \sim\mathcal{N}_{k p}\left(  \text{vec}\left(\sum_{h=1}^dz_{ih}\mathbf{B}_h\right), \mathbf{I}_p \otimes \boldsymbol{\Sigma}\right), \, i = 1, \dots , n,  $
+The model estimated is $\text{vec}(\mathbf{Y}_i \mathbf{R}_i') \sim\mathcal{N}_{k p}\left(  \text{vec}\left(\sum_{h=1}^dz_{ih}\mathbf{B}_h\right), \mathbf{I}_p \otimes \boldsymbol{\Sigma}\right), \, i = 1, \dots , n$
 where
 * $\mathbf{Y}_i$ is the i-th size-and-shape object;
 * $z_{ih}$ is a value of a covariate
