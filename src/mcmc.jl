@@ -1,6 +1,6 @@
 
 function generalSizeAndShapeMCMC(;
-    dataset::Array{Float64,3}, 
+    landmarks::Array{Float64,3}, 
     fm::FormulaTerm = @formula(1~ 1),
     covariates::DataFrame, #
     iterations::NamedTuple{(:iter, :burnin, :thin),Tuple{Int64,Int64,Int64}} =(
@@ -8,155 +8,149 @@ function generalSizeAndShapeMCMC(;
         burnin=200,
         thin=2
     ),
+    
     betaprior::ContinuousUnivariateDistribution = Normal(0.0, 10000.0),
     sigmaprior::ContinuousMatrixDistribution,
-    beta_init::Matrix{Float64},
-    sigma_init::Symmetric{Float64,Matrix{Float64}},
-    rmat_init::Array{Float64,3},
-    dormat::Bool,
-    reflection::Reflection = KeepReflection(),
-    sigmatype::SigmaType = GeneralSigma()
-)::Tuple{
-    Array{Float64, 3}, 
-    Array{Float64, 3}, 
-    Array{Float64, 4}, 
-    Array{Float64, 3}, 
-    Vector{String}, 
-    Int64, 
-    Int64, 
-    Int64, 
-    Int64}
+    beta_init::Matrix{Float64} = zeros(Float64,0,0),
+    sigma_init::Symmetric{Float64,Matrix{Float64}} = Symmetric(zeros(Float64,0,0)),
+    rmat_init::Array{Float64,3} = zeros(Float64,0,0,0),
+    #dormat::Bool,
+    identification::String = ["gramschmidt"][1],
+    meanmodel::String = ["linear"][1],
+    covariancemodel::String = ["general_nocrosscorrelation"][1],
+    keepreflection::String = ["no", "yes"][2],
+    removelocation::String = ["no", "helmert"][2],
+    removesize::String = ["no", "norm"][2],
+    rmatdosample::Bool = true,
+    verbose::Bool = true
+)
 
+    ##### dimensions
+    k::Int64 = size(landmarks, 1)-1
+    kland::Int64 = size(landmarks, 1)
+    p::Int64 = size(landmarks, 2)
+    n::Int64 = size(landmarks, 3)
+    pangle::Int64 = ifelse(p==2,1,3)
+
+    ##### Types
+    reflectioninformation::Reflection = KeepReflection();
+    if keepreflection == "yes"  reflectioninformation = KeepReflection()
+    elseif keepreflection == "no" reflectioninformation = DoNotKeepReflection(); error("keepreflection == \"no\" not implemented")
+    else error("keepreflection should be in [\"no\", \"yes\"]")
+    end
+
+    valp::ValueP = ValueP2();
+    if p == 2 valp = ValueP2();
+    elseif p == 3 valp = ValueP3(); #error("Models with dimension p>2 are not implemented")
+    else error("Models with dimension p>2 are not implemented")
+    end
+
+    locationinformation::RemoveLocation = RemoveLocationHelmert(k, valp);
+    if removelocation == "helmert" locationinformation = RemoveLocationHelmert(k, valp);
+    elseif removelocation == "no" locationinformation = DoNotRemoveLocation(kland, valp); error("removelocation == \"no\" not implemented")
+    else error("removelocation should be in [\"no\", \"helmert\"]")
+    end
+ 
+    sizeinformation::RemoveSize = DoNotRemoveSize();
+    if removesize == "no" sizeinformation = DoNotRemoveSize();
+    elseif removesize == "norm" sizeinformation = RemoveSizeNorm(); error("removesize \"norm\" not implemented")
+    else error("removesize should be in [\"no\", \"norm\"]")
+    end
 
     
-    #### #### #### #### #### 
-    #### check dimensions  and base objects
-    #### #### #### #### #### 
+    ##### identifiability #####
+    identifiability_constraint::IdentifiabilityConstraint = GramSchmidtMean()
+    if identification == "gramschmidt" identifiability_constraint = GramSchmidtMean()
+    else error("identification should be in [\"gramschmidt\"]")
+    end
 
-    k::Int64 = size(dataset, 1)
-    p::Int64 = size(dataset, 2)
-    n::Int64 = size(dataset, 3)
+    if (identification == "gramschmidt") & (meanmodel != "linear") 
+        error("identification \"gramschmidt\" can only be used with meanmodel \"linear\"")
+    end
 
-    valp = Valuep2()
-    if p ==2
-        valp = Valuep2()
-    elseif p == 3
-        error("p (size(dataset, 1)) must be == 2")
-        valp = Valuep3()
+    ##### DATASET #####
+    
+    if rmatdosample == true
+        rmatsample = DoSampleRmat()
     else
-        error("p (size(dataset, 1)) must be <= 3")
+        rmatsample = DoNotSampleRmat()
     end
     
-   
-    covariates_copy = deepcopy(covariates)
-    for i = 1:size(covariates_copy,2)
-        if  isa(covariates_copy[:,i], CategoricalArray)
+    datamodel = SSDataType(landmarks,  reflectioninformation,locationinformation,valp,sizeinformation,identifiability_constraint);
+    data_mcmc = MCMCdata(rmat_init,  datamodel,rmatsample; sdprop_adapt_init = 0.1, accratio_adapt_init = 0.234, molt_adapt_init = 0.4, iter_adapt_init = 50, init_adapt_init= 100, end_adapt_init =   Int64(iterations.burnin*0.9),  a_adapt_init = 100.0, b_adapt_init = 200.0)
 
-        elseif isa(covariates_copy[1,i], Real)
-            covariates_copy[:,i] = (covariates_copy[:,i] .- mean(covariates_copy[:,i])) ./ std(covariates_copy[:,i])
-        else
-            error("Only factors or Real variables are allowed in covariates")
+    
+
+    ###### mean #####
+    mean_model::TypeModelMean = LinearMean(fm, covariates, datamodel, identifiability_constraint)
+    if meanmodel == "linear" mean_model = LinearMean(fm, covariates, datamodel, identifiability_constraint)
+    else error("meanmodel should be in [\"linear\"]")
+    end
+    
+
+    mean_mcmc::MCMCTypeModelMean = MCMCMean(mean_model, valp, beta_init,betaprior,datamodel) 
+ 
+    ###### covariance #####
+    covariance_model::TypeModelCoVariance = GeneralCoVarianceIndependentDimension(identifiability_constraint,datamodel);
+    if covariancemodel == "general_nocrosscorrelation" covariance_model = GeneralCoVarianceIndependentDimension(identifiability_constraint,datamodel);
+    else error("covariancemodel should be in [\"general_nocrosscorrelation\"]")
+    end
+
+    covariance_mcmc = MCMCCovariance(covariance_model, sigma_init, sigmaprior, datamodel)
+    
+    ##### asserts
+    @assert size(datamodel.nolocdata, 3) == size(covariates,1) # n
+    @assert size(datamodel.nolocdata, 3) == size(mean_model.model_matrix,1) # n
+    @assert size(mean_model.designmatrix, 1) == size(datamodel.nolocdata, 1) # k
+    @assert size(mean_model.designmatrix, 3) == size(datamodel.nolocdata, 3) # n
+    @assert size(mean_model.designmatrix, 2) == size(datamodel.nolocdata, 1) * size(mean_model.model_matrix,2) #k d
+
+
+    ##### print messages #####
+    if verbose
+        if (removelocation != "no") & (removesize == "no")
+            print("\n\n")
+            print("Size And Shape Model")
         end
-    end
-
-    designmatrix_v2_app = ModelFrame(fm, covariates_copy);
-    designmatrix_v2 = ModelMatrix(designmatrix_v2_app).m
-    colnames_modelmatrix = coefnames(designmatrix_v2_app)
-
-    @assert sum(designmatrix_v2[:, 1] .== 1) == n "intercept needed"
-    #for i = 2:size(designmatrix_v2, 2)
-
-    #    designmatrix_v2[:, i] = designmatrix_v2[:, i] .- mean(designmatrix_v2[:, i])
-
-    #end
-    designmatrix = compute_designmatrix(designmatrix_v2, k) # dimensions  k, k * d, n
-    
-    d::Int64 = size(designmatrix_v2, 2)
-    #println(size(designmatrix), " ", size(modelmatrix(fm, covariates)))
-    @assert size(dataset, 3) == size(covariates,1) # n
-    @assert size(dataset, 3) == size(designmatrix_v2,1) # n
-    @assert size(designmatrix, 1) == size(dataset, 1) # k
-    @assert size(designmatrix, 3) == size(dataset, 3) # n
-    @assert size(designmatrix, 2) == size(dataset, 1) * size(designmatrix_v2,2) #k d
-    @assert size(beta_init, 2) == size(dataset, 2) # p
-    
-    if size(beta_init, 1) >= size(designmatrix, 2)
-        beta_init = beta_init[1:(size(designmatrix, 2)),:]
-    else
-        error("size(beta_init, 1) must be greater or equal to size(designmatrix, 2) - Increase the first dimension of beta_init")
-    end
-    @assert size(beta_init, 1) == size(designmatrix, 2) # k d
-    @assert size(sigma_init, 1) == size(dataset, 1)
-    @assert size(rmat_init, 1) == size(dataset, 2)
-    @assert size(rmat_init, 2) == size(dataset, 2)
-    @assert size(rmat_init, 3) == size(dataset, 3)
-
-    #designmatrix_v2 = nothing
-
-    xdata = deepcopy(dataset)
-    compute_xdata(xdata, dataset, rmat_init)
-
-    
-
-    #### #### #### #### #### 
-    #### MCMC object
-    #### #### #### #### #### 
-
-    betaMCMC::Matrix{Float64} = deepcopy(beta_init)
-    betastandMCMC::Matrix{Float64} = deepcopy(beta_init)
-    sigmaMCMC::Matrix{Float64} = deepcopy(sigma_init)
-    rmatMCMC::Array{Float64,3} = deepcopy(rmat_init)
-
-    angleMCMC::Matrix{Float64} = zeros(Float64, ifelse(p==2,1,3),n)
-
-    if typeof(reflection) == KeepReflection
-        
-        if p == 2
-            for i = 1:n
-                compute_angle_from_rmat(i, angleMCMC, rmatMCMC, valp, reflection)
-            end
-        else
-            for i = 1:n
-                compute_angle_from_rmat(i, angleMCMC, rmatMCMC, valp, reflection)
-            end
+        if keepreflection == "yes"
+            print(" with reflection information \n")
         end
 
-    elseif typeof(reflection) == donotKeepReflection
-        error("donotKeepReflection not implemented yet")
-    end
+        println("\nThe data has ", 
+            kland," ",  
+            p,"-dimensional landmarks in ", 
+            n,  " shapes",
+        )
+    
+        if true == true
+            println("The mean is modelled with a linear function and it has ", mean_model.d, " regressive coefficients for each dimension*(landmark-1), with a total of ", size(mean_model.designmatrix,2)*datamodel.p, " regressors")
+        end
+        if true == true
+            println("The covariance is unstructured and shared between dimensions, with no cross-correlation")
+        end
 
-    samp_rmat = dosamplermat()
-    if dormat == false
-
-        samp_rmat = donotsamplermat()
+        if typeof(identifiability_constraint) <:GramSchmidtMean
+            println("\nFor identifiability, the regressive coefficients are trasformed using a Gram-Schmidt transformation\n")
+        end
+        
         
     end
-    #### #### #### #### #### 
-    #### MCMC
-    #### #### #### #### #### 
+    
+    ###### MCMC object #####
     iter = Int64(iterations.iter)
     burnin = Int64(iterations.burnin)
     thin = Int64(iterations.thin)
     sampletosave = trunc(Int64, round((iter - burnin) / thin))
 
-    #### #### #### #### #### 
-    #### MCMC out
-    #### #### #### #### #### 
+    ##### #### #### #### #### 
+    ##### MCMC out
+    ##### #### #### #### #### 
 
-    betaOUT::Array{Float64,3} = zeros(Float64, Tuple([sampletosave; size(betaMCMC)...]))
-    sigmaOUT::Array{Float64,3} = zeros(Float64, Tuple([sampletosave; size(sigmaMCMC)...]))
-    rmatOUT::Array{Float64,4} = zeros(Float64, Tuple([sampletosave; size(rmatMCMC)...]))
-    angleOUT::Array{Float64,3} = zeros(Float64, Tuple([sampletosave; size(angleMCMC)...]))
-    # sigmaMCMC::Matrix{Float64} = deepcopy(sigma_init)
-    # rmatMCMC::Array{Float64,3} = deepcopy(rmat_init)
+    posteriorparamters = create_object_output(sampletosave, mean_mcmc, covariance_mcmc, data_mcmc, mean_model)
 
-    # angleMCMC::Matrix{Float64} = zeros(Float64, ifelse(p == 2, 1, 3), n)
-
-
-
-    #### #### #### #### #### 
-    #### algrothm
-    #### #### #### #### #### 
+    ##### #### #### #### #### 
+    ##### algrothm
+    ##### #### #### #### #### 
     iterMCMC = Int64(0)
     thinburnin = burnin
     p1 = Progress(burnin, desc = "burnin ", offset = 0, showspeed = true)
@@ -167,7 +161,8 @@ function generalSizeAndShapeMCMC(;
         showspeed = true,
     )
     isburn = true
-
+    
+    println("MCMC settings ")
     println("Iterations: ", iter)
     println("burnin: ", burnin)
     println("thin: ", thin)
@@ -178,31 +173,58 @@ function generalSizeAndShapeMCMC(;
         for jMCMC = 1:thinburnin
 
             iterMCMC += 1
-            ProgressMeter.next!(p2; showvalues = [(:iterations, iterMCMC)])
-
-
-
-            sampler_beta(xdata, designmatrix, betaprior, betaMCMC, sigmaMCMC, valp, betastandMCMC)
-            sampler_rmat(xdata, designmatrix, betaMCMC, sigmaMCMC, angleMCMC, dataset, valp, reflection, rmatMCMC, samp_rmat)
-            #sampler_rmat(xdata, designmatrix, betastandMCMC, sigmaMCMC, angleMCMC, dataset, valp, reflection, rmatMCMC, samp_rmat)
-            sampler_sigma(xdata, designmatrix, sigmaprior, betaMCMC, sigmaMCMC, sigmatype)
             
 
+            sampler_mean(datamodel, data_mcmc,mean_model,mean_mcmc,covariance_model,covariance_mcmc)
+            sampler_covariance(datamodel, data_mcmc,mean_model,mean_mcmc,covariance_model,covariance_mcmc)
+            sampler_latentobservations(iterMCMC, datamodel, data_mcmc,mean_model,mean_mcmc,covariance_model,covariance_mcmc)
+            
+            
+            ProgressMeter.next!(p2; showvalues = [(:iterations, iterMCMC)])
 
         end
 
         thinburnin = thin
         isburn = false
 
+        copy_parameters_out(iMCMC, posteriorparamters, mean_mcmc, datamodel, covariance_mcmc, data_mcmc) 
+
         
-        betaOUT[iMCMC, :, :] = betastandMCMC[:, :]
-        sigmaOUT[iMCMC, :, :] = sigmaMCMC[:, :]
-        rmatOUT[iMCMC, :, :, :] = rmatMCMC[:, :, :]
-        angleOUT[iMCMC, :, :] = angleMCMC[:, :]
+
+
 
     end
 
-    return betaOUT, sigmaOUT, rmatOUT, angleOUT, colnames_modelmatrix, k, p, n, d 
+    
+    return SizeAndShapeModelOutput(
+            datamodel, 
+            data_mcmc,
+            mean_model,
+            mean_mcmc,
+            covariance_model,
+            covariance_mcmc,
+            posteriorparamters,
+            (iter = iter, burnin = burnin, thin = thin, savedsamples =sampletosave)
+            )
+    ##### #### #### #### 
+    ##### OUTPUT
+    ##### #### #### #### 
+    #nsim = size(betaOUT,1)
 
+    
+
+
+
+    #mcmcoutputSAVE = (beta = bbb, sigma = sss, rmat = rrr, angle = ttt)
+    #mcmcoutputArraysSAVE = (beta = betaOUT, sigma = sigmaOUT, rmat = rmatOUT, angle = angleOUT)
+    #covariatesSAVE = (colnames_modelmatrix = colnames_modelmatrix, fm = deepcopy(fm), covariates = deepcopy(covariates), 
+    #                    designmatrix_step1 = designmatrix_v2, designmatrix_step2 = designmatrix)
+    #datasetSAVE = deepcopy(dataset)
+    #modeltypesSAVE = (dormat=dormat, reflection = reflection, sigmatype=sigmatype, betaprior = betaprior, sigmaprior = sigmaprior, valp = valp);
+    #iterationsSAVE = (iter = iter, burnin = burnin, thin = thin, savedsamples =sampletosave);
+    #indicesSAVE = (k=k, p=p, n=n, d=d);
+
+    #return SizeAndShapeModelOutput(mcmcoutputSAVE , mcmcoutputArraysSAVE , covariatesSAVE , datasetSAVE , modeltypesSAVE , iterationsSAVE , indicesSAVE )
+    
 
 end
