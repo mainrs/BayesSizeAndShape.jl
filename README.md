@@ -28,9 +28,7 @@ where
 * $\boldsymbol{\Sigma}$ is a covariance matrix
 
 The prior distributions are
-$$
-[\mathbf{B}\_h]_{jl} \sim N(m,v),\qquad \boldsymbol{\Sigma} \sim IW(\nu, \Psi)
-$$
+$$[\mathbf{B}\_h]_{jl} \sim N(m,v),\qquad \boldsymbol{\Sigma} \sim IW(\nu, \Psi)$$
 ### **Rats data example**
 
 In the **examples** directory, there is the **julia** file **rats.jl** with an example of how to implement the model with the **rat** data, which we will describe also here. 
@@ -202,13 +200,9 @@ the function
 julia> predictive_mean = sample_predictive_zbr(outmcmc);
 ```
 which compute the posterior samples of
-$$
-\boldsymbol{\mu}\_i^* = \text{vec}\left(\sum\_{h=1}^dz\_{ih}\mathbf{B}\_h \mathbf{R}\_i\right)
-$$
+$$\boldsymbol{\mu}\_i^* = \text{vec}\left(\sum\_{h=1}^dz\_{ih}\mathbf{B}\_h \mathbf{R}\_i\right)$$
 or from the predictive distribution
-$$
-\mathbf{X}\_i^* = \text{vec}\left(\sum_{h=1}^dz\_{ih}\mathbf{B}\_h \mathbf{R}\_i\right)+\boldsymbol{\epsilon}\_{i} ,\qquad \boldsymbol{\epsilon}\_{i}\sim\mathcal{N}\_{k p}\left(  \mathbf{0}, \mathbf{I}\_p \otimes \boldsymbol{\Sigma}\right)
-$$
+$$\mathbf{X}\_i^* = \text{vec}\left(\sum_{h=1}^dz\_{ih}\mathbf{B}\_h \mathbf{R}\_i\right)+\boldsymbol{\epsilon}\_{i} ,\qquad \boldsymbol{\epsilon}\_{i}\sim\mathcal{N}\_{k p}\left(  \mathbf{0}, \mathbf{I}\_p \otimes \boldsymbol{\Sigma}\right)$$
 with the function 
 ```julia
 julia> predictive_obs = sample_predictive_zbr_plus_epsilon(outmcmc);
