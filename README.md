@@ -20,7 +20,7 @@ To fix notation, we assume the following
 * `p` be the dimension of each landmark (only p=2 or p=3)
 
 The model estimated is 
-$$\text{vec}(\mathbf{Y}\_i \mathbf{R}\_i') \sim\mathcal{N}\_{k p}\left(  \text{vec}\left(\sum_{h=1}^dz\_{ih}\mathbf{B}\_h\right), \mathbf{I}\_p \otimes \boldsymbol{\Sigma}\right), \, i = 1, \dots , n$$
+$$\text{vec}(\mathbf{Y}\_i \mathbf{R}\_i') \sim\mathcal{N}\_{k p}\left(  \text{vec}\left(\sum_{h=1}^dz\_{ih}\mathbf{B}\_h\right), \mathbf{I}\_p \otimes \boldsymbol{\Sigma}\right), \,\qquad i = 1, \dots , n$$
 where
 * $\mathbf{Y}\_i$ is the i-th size-and-shape object;
 * $z_{ih}$ is a value of a covariate
@@ -29,7 +29,7 @@ where
 
 The prior distributions are
 $$
-[\mathbf{B}_h]_{jl} \sim N(m,v),\,\,\,\,\,\,\,\,\,\, \boldsymbol{\Sigma} \sim IW(\nu, \Psi)
+[\mathbf{B}\_h]_{jl} \sim N(m,v),\qquad \boldsymbol{\Sigma} \sim IW(\nu, \Psi)
 $$
 ### **Rats data example**
 
@@ -152,7 +152,7 @@ Posterior samples of the parameters can be extracted using the following:
 julia> betaout = posterior_samples_beta(outmcmc);
 julia> sigmaout = posterior_samples_sigma(outmcmc);
 ```
-where `betaout` is a `DataFrame` that contains the posterior samples of $\mathbf{B}_h$, while `sigmaout` is a `DataFrame` that contains the ones of $\boldsymbol{\Sigma}$. Each row is a posterior sample.
+where `betaout` is a `DataFrame` that contains the posterior samples of $\mathbf{B}\_h$, while `sigmaout` is a `DataFrame` that contains the ones of $\boldsymbol{\Sigma}$. Each row is a posterior sample.
 
 The column names of `betaout` are informative on which mark/dimension/covariates a specific regressive coefficient is connected
 ```julia
@@ -203,11 +203,11 @@ julia> predictive_mean = sample_predictive_zbr(outmcmc);
 ```
 which compute the posterior samples of
 $$
-\boldsymbol{\mu}_i^* = \text{vec}\left(\sum_{h=1}^dz_{ih}\mathbf{B}_h \mathbf{R}_i\right)
+\boldsymbol{\mu}\_i^* = \text{vec}\left(\sum_{h=1}^dz\_{ih}\mathbf{B}\_h \mathbf{R}\_i\right)
 $$
 or from the predictive distribution
 $$
-\mathbf{X}_i^* = \text{vec}\left(\sum_{h=1}^dz_{ih}\mathbf{B}_h \mathbf{R}_i\right)+\boldsymbol{\epsilon}_{i} \,\,\,\,\,\,\,\,\ \boldsymbol{\epsilon}_{i}\sim\mathcal{N}_{k p}\left(  \mathbf{0}, \mathbf{I}_p \otimes \boldsymbol{\Sigma}\right)
+\mathbf{X}\_i^* = \text{vec}\left(\sum_{h=1}^dz\_{ih}\mathbf{B}_h \mathbf{R}\_i\right)+\boldsymbol{\epsilon}_{i} ,\qquad \boldsymbol{\epsilon}_{i}\sim\mathcal{N}\_{k p}\left(  \mathbf{0}, \mathbf{I}\_p \otimes \boldsymbol{\Sigma}\right)
 $$
 with the function 
 ```julia
