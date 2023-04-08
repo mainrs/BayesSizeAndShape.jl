@@ -1,3 +1,6 @@
+# make.jl
+#using Pkg
+#Pkg.activate("/Users/gianlucamastrantonio/Dropbox (Politecnico di Torino Staff)/lavori/gitrepo/BayesSizeAndShape/todelete/rat")
 using Documenter, BayesSizeAndShape
 
 makedocs(
