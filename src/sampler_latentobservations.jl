@@ -97,19 +97,7 @@ end
 
 
 
-function sampler_latentobservations(
-    iterMCMC::Int64,
-    datamodel::SSDataType{R,RL,VP,RS,IC},
-    data_mcmc::MCMCNormalDataKeepSize{R,RL,VP,<:DoNotSampleRmat},
-    mean_model::TypeModelMean,
-    mean_mcmc::MCMCTypeModelMean,
-    covariance_model::TypeModelCoVariance,
-    covariance_mcmc::MCMCTypeModelCoVariance
-    ) where {R<:Reflection,RL<:RemoveLocation,VP<:ValueP,RS<:RemoveSize,IC<:IdentifiabilityConstraint}
 
-    # No sample beta
-
-end
 
 function sampler_latentobservations(
     iterMCMC::Int64,
