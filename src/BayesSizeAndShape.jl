@@ -29,7 +29,7 @@ include(joinpath("prediction.jl"))
 include(joinpath("external_function.jl"))
 
 
-include(joinpath("old files/sim.jl"))
+#include(joinpath("old files/sim.jl"))
 
 
 ##### Dataset
