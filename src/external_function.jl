@@ -80,6 +80,6 @@ function posterior_samples_sigma(modeloutput::SizeAndShapeModelOutput{KeepReflec
     
 }
 
-    return modeloutput.posteriorsamples.beta
+    return modeloutput.posteriorsamples.sigma
 
 end

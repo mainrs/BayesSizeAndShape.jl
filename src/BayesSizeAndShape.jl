@@ -29,6 +29,9 @@ include(joinpath("prediction.jl"))
 include(joinpath("external_function.jl"))
 
 
+include(joinpath("old files/sim.jl"))
+
+
 ##### Dataset
 #rats = load(joinpath(@__DIR__,"data/rats.jld"))["data"]
 #rats_cov = load(joinpath(@__DIR__,"data/rats.jld"))["cov"]

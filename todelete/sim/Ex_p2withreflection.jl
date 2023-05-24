@@ -78,14 +78,6 @@ minimum(helmdata[:,:,:]-dataset_complete[:,:,:])
 
 ssdata, ssdata_rotmat = BayesSizeAndShape.compute_sizeshape_fromnolocdata(helmdata, BayesSizeAndShape.KeepReflection(), BayesSizeAndShape.ValueP2());
 
-for i in 1:size(ssdata_rotmat,3)
-    println(det(ssdata_rotmat[:,:,i]))
-    if det(ssdata_rotmat[:,:,i])<0
-        error("")
-    end
-    println(sum( (helmdata[:,:,i] - ssdata[:,:,i]*transpose(ssdata_rotmat[:,:,i])) ))
-end
-
 dataset = BayesSizeAndShape.SSDataType(dataset_complete_landmark,  BayesSizeAndShape.KeepReflection(),helmmat,BayesSizeAndShape.ValueP2(),BayesSizeAndShape.DoNotRemoveSize(), BayesSizeAndShape.GramSchmidtMean());
 
 #dataset.nolocdata[:,:,5] -dataset_complete[:,:,5]
@@ -96,12 +88,11 @@ dataset = BayesSizeAndShape.SSDataType(dataset_complete_landmark,  BayesSizeAndS
 ### ### ### ### ### 
 ### MCMC
 ### ### ### ### ### 
-molt::Int64 = 3
 mcmcOUT = generalSizeAndShapeMCMC(;
     landmarks = dataset_complete_landmark,
     fm = @formula(1 ~ 1+ x1 + x2),
     covariates = zmat,
-    iterations=(iter=1000*molt, burnin=200*molt, thin=2*molt),
+    iterations=(iter=1000, burnin=200, thin=2),
 
     betaprior = Normal(0.0,100000.0),#
     sigmaprior=InverseWishart(k + 2, 5.0 * Matrix{Float64}(I, k, k)),
@@ -128,15 +119,15 @@ mcmcOUT = generalSizeAndShapeMCMC(;
     verbose= true
 );
 
-#mcmcOUT =BayesSizeAndShape.SizeAndShapeWithReflectionMCMC(
-#    dataset_complete_landmark,
-#    @formula(1 ~ 1+ x1 + x2),
-#    zmat,
-#    (iter=1000, burnin=200, thin=2),
+mcmcOUT =BayesSizeAndShape.SizeAndShapeWithReflectionMCMC(
+    dataset_complete_landmark,
+    @formula(1 ~ 1+ x1 + x2),
+    zmat,
+    (iter=1000, burnin=200, thin=2),
 
-#    Normal(0.0,100000.0),#
-#    InverseWishart(k + 2, 5.0 * Matrix{Float64}(I, k, k))
-#);
+    Normal(0.0,100000.0),#
+    InverseWishart(k + 2, 5.0 * Matrix{Float64}(I, k, k))
+);
 
 predictive_mean = sample_predictive_zbr(mcmcOUT);
 predictive_obs = sample_predictive_zbr_plus_epsilon(mcmcOUT);
