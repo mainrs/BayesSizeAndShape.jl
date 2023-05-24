@@ -164,9 +164,9 @@ function generalSizeAndShapeMCMC(;
     
     println("MCMC settings ")
     println("Iterations: ", iter)
-    println("burnin: ", burnin)
-    println("thin: ", thin)
-    println("number of posterior samples: ", sampletosave)
+    println("Burnin: ", burnin)
+    println("Thin: ", thin)
+    println("Number of posterior samples: ", sampletosave)
     println("Number of threads: ", Threads.nthreads())
     for iMCMC = 1:sampletosave
 
