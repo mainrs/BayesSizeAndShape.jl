@@ -39,7 +39,7 @@ covariates = DataFrame(
 
 outmcmc = SizeAndShapeWithReflectionMCMC(
     landmark,
-    @formula(1 ~ 1+time + subject),
+    @formula(landmarks ~ 1+time + subject),
     covariates,
     (iter=1000, burnin=200, thin=2),
     Normal(0.0,100000.0),#

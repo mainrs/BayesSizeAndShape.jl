@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.1.5] - 2023-04-24
+### Added
+- There is now a real data example
+
+### Changed
+- The entire package structure has been changed. - This version breaks backward compatibility
+
+
 ## [v0.1.4] - 2023-03-14
 ### Added
 - compute_helmertized_configuration

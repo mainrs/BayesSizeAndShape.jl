@@ -126,7 +126,7 @@ Posterior samples are obtained with the function `SizeAndShapeWithReflectionMCMC
 
 The parameters are (in order)
 * a three-dimensional `Array` of data;
-* a `formula`, where on the left-hand side there must be 1 and on the right-hand side there is the actual regressive formula - an intercept is needed;
+* a `formula`, where on the left-hand side there must be "landmarks" and on the right-hand side there is the actual regressive formula - an intercept is needed;
 * a `DataFrame` of covariates. The formula search for the covariates in the `DataFrame` column names;
 * a `NamedTuple` with `iter`, `burnin`, and `thin` values of the MCMC algorithm
 * a `Normal` distribution that is used as prior for all regressive coefficients
@@ -138,7 +138,7 @@ The parameters are (in order)
 ```julia
 julia> outmcmc = SizeAndShapeWithReflectionMCMC(
     landmark,
-    @formula(1 ~ 1+time + subject),
+    @formula(landmarks ~ 1+time + subject),
     covariates,
     (iter=1000, burnin=200, thin=2),
     Normal(0.0,100000.0),#

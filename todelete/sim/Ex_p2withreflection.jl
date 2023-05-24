@@ -90,7 +90,7 @@ dataset = BayesSizeAndShape.SSDataType(dataset_complete_landmark,  BayesSizeAndS
 ### ### ### ### ### 
 mcmcOUT = generalSizeAndShapeMCMC(;
     landmarks = dataset_complete_landmark,
-    fm = @formula(1 ~ 1+ x1 + x2),
+    fm = @formula(landmarks ~ 1+ x1 + x2),
     covariates = zmat,
     iterations=(iter=1000, burnin=200, thin=2),
 
