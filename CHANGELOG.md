@@ -1,6 +1,6 @@
 # Changelog
 
-## [v0.1.5] - 2023-04-24
+## [v0.2.1] - 2023-05-24
 ### Added
 - There is now a real data example
 

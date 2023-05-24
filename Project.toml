@@ -1,7 +1,7 @@
 name = "BayesSizeAndShape"
 uuid = "cb1733c5-7124-4973-b058-890cf74b35cb"
 authors = ["Gianluca Mastrantonio <mastrantonio.gluca@gmail.com>", "Giovanna Jona Lasinio <giovanna.jonalasinio@uniroma1.it>"]
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
 CategoricalArrays = "324d7699-5711-5eae-9e2f-1d82baa6b597"
