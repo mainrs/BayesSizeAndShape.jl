@@ -3,4 +3,4 @@
 *.jl.mem
 /deps/deps.jl
 src/old files
-todelete/sim/plot
+testfiles/sim/plot 
